@@ -84,11 +84,22 @@ export function App() {
           selectedMap={selectedMap}
           onSelect={setSelectedMap}
           onBack={() => setMapSelect(false)}
-          onDeploy={() => startGame(selectedMap)}
+          onDeploy={() => {
+            if (isMobile) document.documentElement.requestFullscreen().catch(() => { });
+            startGame(selectedMap);
+          }}
         />
       );
     }
-    return <StartScreen onStart={() => setMapSelect(true)} isMobile={isMobile} />;
+    return (
+      <StartScreen
+        onStart={() => {
+          if (isMobile) document.documentElement.requestFullscreen().catch(() => { });
+          setMapSelect(true);
+        }}
+        isMobile={isMobile}
+      />
+    );
   }
 
   return (
