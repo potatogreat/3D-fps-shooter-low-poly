@@ -36,6 +36,49 @@ export function App() {
   const [mapSelect, setMapSelect] = useState(false);
   const [selectedMap, setSelectedMap] = useState<MapName>('bootcamp');
   const [loading, setLoading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Toggle fullscreen and orientation lock
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        setIsFullscreen(true);
+        const orientation = (screen as any).orientation;
+        if (orientation && orientation.lock) {
+          await orientation.lock('landscape').catch(() => { });
+        }
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err);
+    }
+  }, []);
+
+  // Listen for native fullscreen changes (e.g., escape key or system gesture)
+  useEffect(() => {
+    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  // Handle mobile back button prevention
+  useEffect(() => {
+    if (!started || !isMobile) return;
+
+    // Push a dummy state to the history
+    window.history.pushState({ noBack: true }, '');
+
+    const handlePopState = (e: PopStateEvent) => {
+      // Re-push state when user tries to go back
+      window.history.pushState({ noBack: true }, '');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [started, isMobile]);
 
   useEffect(() => {
     setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -85,11 +128,7 @@ export function App() {
           onSelect={setSelectedMap}
           onBack={() => setMapSelect(false)}
           onDeploy={() => {
-            if (isMobile) {
-              document.documentElement.requestFullscreen()
-                .then(() => { if (screen.orientation?.lock) screen.orientation.lock('landscape').catch(() => { }); })
-                .catch(() => { });
-            }
+            if (isMobile) toggleFullscreen();
             startGame(selectedMap);
           }}
         />
@@ -98,11 +137,7 @@ export function App() {
     return (
       <StartScreen
         onStart={() => {
-          if (isMobile) {
-            document.documentElement.requestFullscreen()
-              .then(() => { if (screen.orientation?.lock) screen.orientation.lock('landscape').catch(() => { }); })
-              .catch(() => { });
-          }
+          if (isMobile) toggleFullscreen();
           setMapSelect(true);
         }}
         isMobile={isMobile}
@@ -180,6 +215,17 @@ export function App() {
       {/* HUD */}
       <HUD state={state} isMobile={isMobile} />
 
+      {/* Fullscreen Toggle Button (Mobile Only, under HUD) */}
+      {isMobile && !state.gameOver && (
+        <button
+          onClick={toggleFullscreen}
+          className="absolute top-16 left-2 z-40 bg-black/60 backdrop-blur-md border border-white/20 
+                     px-2 py-1 rounded-md text-[9px] font-black text-white/80 active:scale-95 transition-all"
+        >
+          {isFullscreen ? '🗗 EXIT FULLSCREEN' : '🗖 ENTER FULLSCREEN'}
+        </button>
+      )}
+
       {/* Kill Feed - top right */}
       <KillFeed entries={state.killFeed} times={state.killFeedTimes} />
 
@@ -227,8 +273,8 @@ function KillFeed({ entries, times }: { entries: string[]; times: number[] }) {
       const timeKey = times[items.indexOf(it)] ? times[items.indexOf(it)].toFixed(3) : '';
       return `${it.msg}_${timeKey}`;
     }));
-    stableKeysRef.current.forEach((_: string, k: string) => {
-      if (!activeKeys.has(k)) stableKeysRef.current.delete(k);
+    stableKeysRef.current.forEach((value: number, key: string) => {
+      if (!activeKeys.has(key)) stableKeysRef.current.delete(key);
     });
   }, [entries.length]);
 
