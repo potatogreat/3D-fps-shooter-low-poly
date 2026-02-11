@@ -297,9 +297,6 @@ export class GameEngine {
 
     const canvas = this.renderer.domElement;
 
-    // Disable right-click context menu
-    window.addEventListener("contextmenu", (e) => e.preventDefault());
-
     if (!this.isMobile) {
       canvas.addEventListener('click', () => {
         audioManager.init();
@@ -321,7 +318,6 @@ export class GameEngine {
 
       canvas.addEventListener('mousedown', (e) => {
         if (e.button === 0) this.mouseDown = true;
-        if (e.button === 2) this.toggleScope();
       });
       canvas.addEventListener('mouseup', (e) => {
         if (e.button === 0) this.mouseDown = false;
@@ -369,12 +365,12 @@ export class GameEngine {
   }
 
   toggleScope() {
-    if (true) { // Enabled for all weapons
+    if (this.weapon.type === 'sniper') {
       this.scoped = !this.scoped;
-      let zoomFOV = 65; if(this.weapon.type === 'sniper') zoomFOV = 25; if(this.weapon.type === 'rifle') zoomFOV = 55; this.camera.fov = this.scoped ? zoomFOV : 75;
+      this.camera.fov = this.scoped ? 25 : 75;
       this.camera.updateProjectionMatrix();
       if (this.scoped && this.weaponMesh) {
-        if(this.weapon.type === 'sniper') this.weaponMesh.visible = false; else this.weaponMesh.visible = true;
+        this.weaponMesh.visible = false;
       } else if (this.weaponMesh) {
         this.weaponMesh.visible = true;
       }
