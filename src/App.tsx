@@ -85,7 +85,11 @@ export function App() {
           onSelect={setSelectedMap}
           onBack={() => setMapSelect(false)}
           onDeploy={() => {
-            if (isMobile) document.documentElement.requestFullscreen().catch(() => { });
+            if (isMobile) {
+              document.documentElement.requestFullscreen()
+                .then(() => { if (screen.orientation?.lock) screen.orientation.lock('landscape').catch(() => { }); })
+                .catch(() => { });
+            }
             startGame(selectedMap);
           }}
         />
@@ -94,7 +98,11 @@ export function App() {
     return (
       <StartScreen
         onStart={() => {
-          if (isMobile) document.documentElement.requestFullscreen().catch(() => { });
+          if (isMobile) {
+            document.documentElement.requestFullscreen()
+              .then(() => { if (screen.orientation?.lock) screen.orientation.lock('landscape').catch(() => { }); })
+              .catch(() => { });
+          }
           setMapSelect(true);
         }}
         isMobile={isMobile}
