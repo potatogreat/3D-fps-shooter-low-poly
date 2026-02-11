@@ -37,6 +37,8 @@ export function App() {
   const [selectedMap, setSelectedMap] = useState<MapName>('bootcamp');
   const [loading, setLoading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showBackToast, setShowBackToast] = useState(false);
+  const [backPressCount, setBackPressCount] = useState(0);
 
   // Toggle fullscreen and orientation lock
   const toggleFullscreen = useCallback(async () => {
@@ -64,21 +66,50 @@ export function App() {
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  // Handle mobile back button prevention
+  // Handle mobile back button double-tap to exit
   useEffect(() => {
     if (!started || !isMobile) return;
 
-    // Push a dummy state to the history
     window.history.pushState({ noBack: true }, '');
 
+    let toastTimer: any;
+    let resetTimer: any;
+
     const handlePopState = (e: PopStateEvent) => {
-      // Re-push state when user tries to go back
-      window.history.pushState({ noBack: true }, '');
+      // User pressed back button
+      if (backPressCount === 0) {
+        // First press
+        setBackPressCount(1);
+        setShowBackToast(true);
+        window.history.pushState({ noBack: true }, '');
+
+        // Show for 2 seconds
+        toastTimer = setTimeout(() => setShowBackToast(false), 2000);
+        // Reset count if they don't press again within 2s
+        resetTimer = setTimeout(() => setBackPressCount(0), 2000);
+      } else {
+        // Second press within time window
+        clearTimeout(toastTimer);
+        clearTimeout(resetTimer);
+        setShowBackToast(false);
+        setBackPressCount(0);
+
+        // Exit fullscreen/game logic
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => { });
+        }
+        // Actually allow the navigation this time or refresh
+        window.location.reload();
+      }
     };
 
     window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [started, isMobile]);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      clearTimeout(toastTimer);
+      clearTimeout(resetTimer);
+    };
+  }, [started, isMobile, backPressCount]);
 
   useEffect(() => {
     setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -128,7 +159,7 @@ export function App() {
           onSelect={setSelectedMap}
           onBack={() => setMapSelect(false)}
           onDeploy={() => {
-            if (isMobile) toggleFullscreen();
+            if (isMobile && !document.fullscreenElement) toggleFullscreen();
             startGame(selectedMap);
           }}
         />
@@ -226,6 +257,22 @@ export function App() {
         </button>
       )}
 
+      {/* ===== TOP RIGHT BRANDING ===== */}
+      <div className="absolute top-4 right-4 z-[100] pointer-events-none">
+        <div className="text-white/30 text-[9px] font-black uppercase tracking-[0.2em] font-sans">
+          Created by Potato💗
+        </div>
+      </div>
+
+      {/* Exit Confirmation Toast */}
+      {showBackToast && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[100] pointer-events-none animate-bounce">
+          <div className="bg-red-600 text-white px-4 py-2 rounded-full font-black text-sm shadow-xl border-2 border-white">
+            PRESS BACK AGAIN TO EXIT
+          </div>
+        </div>
+      )}
+
       {/* Kill Feed - top right */}
       <KillFeed entries={state.killFeed} times={state.killFeedTimes} />
 
@@ -305,6 +352,9 @@ function StartScreen({ onStart, isMobile }: { onStart: () => void; isMobile: boo
           <h2 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-400 to-red-500">
             ARENA
           </h2>
+          <div className="text-gray-400 text-sm font-medium animate-pulse mt-2">
+            Created by Potato💗
+          </div>
         </div>
 
         <div className="space-y-3 text-gray-400 text-sm md:text-base">
