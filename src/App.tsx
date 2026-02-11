@@ -215,12 +215,12 @@ export function App() {
       {/* HUD */}
       <HUD state={state} isMobile={isMobile} />
 
-      {/* Fullscreen Toggle Button (Mobile Only, under HUD) */}
-      {isMobile && !state.gameOver && (
+      {/* Fullscreen Toggle Button (Visible for all for testing, under HUD) */}
+      {!state.gameOver && (
         <button
           onClick={toggleFullscreen}
-          className="absolute top-16 left-2 z-40 bg-black/60 backdrop-blur-md border border-white/20 
-                     px-2 py-1 rounded-md text-[9px] font-black text-white/80 active:scale-95 transition-all"
+          className="absolute top-20 left-2 z-50 bg-red-600/80 hover:bg-red-500 text-white font-bold 
+                     px-4 py-2 rounded-lg text-xs shadow-lg shadow-red-900/40 active:scale-95 transition-all"
         >
           {isFullscreen ? '🗗 EXIT FULLSCREEN' : '🗖 ENTER FULLSCREEN'}
         </button>
