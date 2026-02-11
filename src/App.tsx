@@ -259,8 +259,9 @@ export function App() {
 
       {/* ===== TOP RIGHT BRANDING ===== */}
       <div className="absolute top-4 right-4 z-[100] pointer-events-none">
-        <div className="text-white/30 text-[9px] font-black uppercase tracking-[0.2em] font-sans">
-          Created by Potato💗
+        <div className="text-white font-black uppercase tracking-[0.2em] font-sans text-[10px] 
+                        drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] opacity-60">
+          Created by <span className="text-pink-400">Potato💗</span>
         </div>
       </div>
 
@@ -352,7 +353,8 @@ function StartScreen({ onStart, isMobile }: { onStart: () => void; isMobile: boo
           <h2 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-400 to-red-500">
             ARENA
           </h2>
-          <div className="text-gray-400 text-sm font-medium animate-pulse mt-2">
+          <div className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-red-400 
+                          text-sm font-black animate-pulse mt-4 drop-shadow-[0_0_12px_rgba(244,114,182,0.4)] tracking-widest uppercase">
             Created by Potato💗
           </div>
         </div>
